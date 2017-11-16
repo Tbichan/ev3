@@ -1,5 +1,10 @@
 package finalkadai;
 
+/**
+ * author oishi
+ * 
+ */
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,17 +21,17 @@ import lejos.hardware.motor.Motor;
 
 public class FinalKdai {
 	
-	// g—p‚·‚éƒ‚[ƒ^[‚Ì’è‹`
+	// ä½¿ç”¨ã™ã‚‹ãƒ¢ãƒ¼ã‚¿ãƒ¼ã®å®šç¾©
 	static RegulatedMotor leftMoter = Motor.C;
 	static RegulatedMotor rightMoter = Motor.B;
 	static RegulatedMotor middleMoter = Motor.D;
 
-	//g—p‚·‚éƒZƒ“ƒT[‚Ì’è‹`
+	//ä½¿ç”¨ã™ã‚‹ã‚»ãƒ³ã‚µãƒ¼ã®å®šç¾©
 	static EV3ColorSensor colorSensor = new EV3ColorSensor(SensorPort.S1);
 	static EV3GyroSensor gyroSensor = new EV3GyroSensor(SensorPort.S3);
 	static EV3UltrasonicSensor sonicSensor = new EV3UltrasonicSensor(SensorPort.S4);
 	
-	//ƒZƒ“ƒT[ƒ‚[ƒh‚Ìİ’è
+	//ã‚»ãƒ³ã‚µãƒ¼ãƒ¢ãƒ¼ãƒ‰ã®è¨­å®š
 	static SensorMode gyro;
 	static SensorMode color;
 	static float valueCol[];
@@ -36,21 +41,21 @@ public class FinalKdai {
 	static SensorMode sonic;
 	static float[] valueSonic;
 	
-	// ƒJƒ‰[ƒZƒ“ƒT[‚Ì‘O‚Ì•Î·
+	// ã‚«ãƒ©ãƒ¼ã‚»ãƒ³ã‚µãƒ¼ã®å‰ã®åå·®
 	static float preDiff = 0;
 	static float diff = 0;
 	
 	static float DELTA_T = 0.005f;
 	
-	// •‚Ì‚ ‚½‚¢
+	// é»’ã®ã‚ãŸã„
 	static float BLACK_VALUE = 0.15f;
 	static float WHITE_VALUE = 0.8f;
 	static float BLUE_VALUE = 0.05f;
 	
-	// I‚ÌÏ•ª—p
+	// Iã®ç©åˆ†ç”¨
 	static List<Float> integralList = new ArrayList<Float>();
 	
-	// áŠQ•¨‚Ìè‡’l
+	// éšœå®³ç‰©ã®é–¾å€¤
 	public static final float THRESHOLD = 0.06f;
 	
 	public static int CLOCKWISE = 1;
@@ -58,102 +63,102 @@ public class FinalKdai {
 	
 	public static void main(String[] args) {
 		
-		//ƒZƒ“ƒT[ƒ‚[ƒh‚Ìİ’è
+		//ã‚»ãƒ³ã‚µãƒ¼ãƒ¢ãƒ¼ãƒ‰ã®è¨­å®š
 		color = colorSensor.getMode(1);
-		//ƒZƒ“ƒT[‚Ìæ“¾’l‚ğŠi”[‚·‚é”z—ñ‚Ì—pˆÓ
+		//ã‚»ãƒ³ã‚µãƒ¼ã®å–å¾—å€¤ã‚’æ ¼ç´ã™ã‚‹é…åˆ—ã®ç”¨æ„
 		valueCol = new float[color.sampleSize()];
 		
-		//ƒZƒ“ƒT[ƒ‚[ƒh‚Ìİ’è
+		//ã‚»ãƒ³ã‚µãƒ¼ãƒ¢ãƒ¼ãƒ‰ã®è¨­å®š
 		sonic = sonicSensor.getMode(0);
-		//ƒZƒ“ƒT[‚Ìæ“¾’l‚ğŠi”[‚·‚é”z—ñ‚Ì—pˆÓ
+		//ã‚»ãƒ³ã‚µãƒ¼ã®å–å¾—å€¤ã‚’æ ¼ç´ã™ã‚‹é…åˆ—ã®ç”¨æ„
 		valueSonic = new float[sonic.sampleSize()];
 		
-		//ƒZƒ“ƒT[ƒ‚[ƒh‚Ìİ’è
+		//ã‚»ãƒ³ã‚µãƒ¼ãƒ¢ãƒ¼ãƒ‰ã®è¨­å®š
 		gyro = gyroSensor.getMode(1);
-		//ƒZƒ“ƒT[‚Ìæ“¾’l‚ğŠi”[‚·‚é”z—ñ‚Ì—pˆÓ
+		//ã‚»ãƒ³ã‚µãƒ¼ã®å–å¾—å€¤ã‚’æ ¼ç´ã™ã‚‹é…åˆ—ã®ç”¨æ„
 		valueGyro = new float[gyro.sampleSize()];
-		//ƒWƒƒƒCƒƒZƒ“ƒT[‚ÌƒŠƒZƒbƒg
+		//ã‚¸ãƒ£ã‚¤ãƒ­ã‚»ãƒ³ã‚µãƒ¼ã®ãƒªã‚»ãƒƒãƒˆ
 		gyroSensor.reset();
 		
-		//‰æ‘œ‚Ì‰Šú‰»
+		//ç”»åƒã®åˆæœŸåŒ–
 		LCD.clear();
 		
-		// ƒ‚[ƒ^[Šp“x‰Šú‰»
+		// ãƒ¢ãƒ¼ã‚¿ãƒ¼è§’åº¦åˆæœŸåŒ–
 		motor_init();
 		
 		int pow = 100;
 		int powHigh = 150;
 		
-		// ‘OiAPID
+		// å‰é€²ã€PID
 		forwardPID(pow/2, 300, CLOCKWISE);
 		
 		motor_set(0, 0);
 		Delay.msDelay(1000);
 		
-		// ƒ‚[ƒ^[‰Šú‰»
+		// ãƒ¢ãƒ¼ã‚¿ãƒ¼åˆæœŸåŒ–
 		motor_init();
 		
-		// ‘Oi
+		// å‰é€²
 		forward(powHigh+4, powHigh, 360);
 		
 		motor_set(0, 0);
 		Delay.msDelay(1000);
 		
-		//  ƒuƒƒbƒN‚ªŒ©‚Â‚©‚é‚Ü‚Å‘Oi
+		//  ãƒ–ãƒ­ãƒƒã‚¯ãŒè¦‹ã¤ã‹ã‚‹ã¾ã§å‰é€²
 		float deg = forwardFindBlockPID(pow, CLOCKWISE);
 		
 		motor_set(0, 0);
 		Delay.msDelay(1000);
 		
-		// ƒuƒƒbƒN‚ğ‚Â‚©‚Ş
+		// ãƒ–ãƒ­ãƒƒã‚¯ã‚’ã¤ã‹ã‚€
 		catchBlock();
 		
-		// Œãi
+		// å¾Œé€²
 		forward(-pow/2, deg + 30);
 		
 		motor_set(0, 0);
 		Delay.msDelay(1000);
 		
-		// ‰ñ“]
+		// å›è»¢
 		angle(pow/2, 90, CLOCKWISE);
 		
-		// ‘Oi
+		// å‰é€²
 		forward(powHigh, powHigh+4, 290);
 		
 		motor_set(0, 0);
 		Delay.msDelay(1000);
 		
-		// ‘OiAPID
+		// å‰é€²ã€PID
 		forwardPID(pow * 2, 1470, CLOCKWISE);
 		
 		motor_set(0, 0);
 		Delay.msDelay(1000);
 		
-		// ‘Oi
+		// å‰é€²
 		forward(powHigh, 475);
 		
 		motor_set(0, 0);
 		Delay.msDelay(1000);
 		
-		// ‰ñ“]AŒë·‚ ‚èH
+		// å›è»¢ã€èª¤å·®ã‚ã‚Šï¼Ÿ
 		angle(pow/2, 78, COUNTERCLOCKWISE);
 		
-		// ‘Oi
+		// å‰é€²
 		forward(powHigh, 100);
 		
 		motor_set(0, 0);
 		Delay.msDelay(1000);
 		
-		// ‘OiAPID
+		// å‰é€²ã€PID
 		forwardPID(pow/2, 320, CLOCKWISE);
 		
 		motor_set(0, 0);
 		Delay.msDelay(1000);
 		
-		// ‚Í‚È‚·
+		// ã¯ãªã™
 		releaseBlock();
 		
-		// Œãi
+		// å¾Œé€²
 		forward(-pow/2, 200);
 		
 		motor_set(0, 0);
@@ -166,19 +171,19 @@ public class FinalKdai {
 		motor_set(0, 0);
 		Delay.msDelay(1000);
 		
-		//  ƒuƒƒbƒN‚ªŒ©‚Â‚©‚é‚Ü‚Å‘Oi
+		//  ãƒ–ãƒ­ãƒƒã‚¯ãŒè¦‹ã¤ã‹ã‚‹ã¾ã§å‰é€²
 		deg = forwardFindBlockPID(pow/2, CLOCKWISE);
 		
 		motor_set(0, 0);
 		Delay.msDelay(1000);
 			
-		// ƒuƒƒbƒN‚ğ‚Â‚©‚Ş
+		// ãƒ–ãƒ­ãƒƒã‚¯ã‚’ã¤ã‹ã‚€
 		catchBlock();
 		
 		motor_set(0, 0);
 		Delay.msDelay(1000);
 		
-		// Œãi@
+		// å¾Œé€²ã€€
 		forward(-pow+10, -pow, deg + 200);
 		//forward(-pow, deg + 200);
 		
@@ -187,49 +192,49 @@ public class FinalKdai {
 		
 		angle(pow/2, 172, CLOCKWISE);
 		
-		// ‘OiAPID
+		// å‰é€²ã€PID
 		forwardPID(pow/3, 320, CLOCKWISE);
 		
 		motor_set(0, 0);
 		Delay.msDelay(1000);
 		
-		// ‚Í‚È‚·
+		// ã¯ãªã™
 		releaseBlock();
 		
 		motor_set(0, 0);
 		Delay.msDelay(2000);
 		
-		// ‘Oi
+		// å‰é€²
 		forward(pow, 100);
 		
 		motor_set(0, 0);
 		Delay.msDelay(1000);
 		
-		// ‰ñ“]
+		// å›è»¢
 		angle(pow/2, 170, COUNTERCLOCKWISE);
 		
-		//  ƒuƒƒbƒN‚ªŒ©‚Â‚©‚é‚Ü‚Å‘Oi
+		//  ãƒ–ãƒ­ãƒƒã‚¯ãŒè¦‹ã¤ã‹ã‚‹ã¾ã§å‰é€²
 		deg = forwardFindBlockPID(pow/2, CLOCKWISE);
 		
 		motor_set(0, 0);
 		Delay.msDelay(1000);
 		
-		// ƒuƒƒbƒN‚ğ‚Â‚©‚Ş
+		// ãƒ–ãƒ­ãƒƒã‚¯ã‚’ã¤ã‹ã‚€
 		catchBlock();
 		
 		motor_set(0, 0);
 		Delay.msDelay(1000);
 		
-		// ‰ñ“]
+		// å›è»¢
 		angle(pow/2, 170, CLOCKWISE);
 		
-		// ‚Í‚È‚·
+		// ã¯ãªã™
 		releaseBlock();
 		
 		motor_set(0, 0);
 		Delay.msDelay(1000);
 		
-		// ‘Oi
+		// å‰é€²
 		forward(-pow, 100);
 		
 		motor_set(0, 0);
@@ -237,7 +242,7 @@ public class FinalKdai {
 	}
 	
 	/**
-	 * ƒ‚[ƒ^[‰Šú‰»
+	 * ãƒ¢ãƒ¼ã‚¿ãƒ¼åˆæœŸåŒ–
 	 */
 	private static void motor_init(){
 		leftMoter.resetTachoCount();
@@ -270,13 +275,13 @@ public class FinalKdai {
 		}
 	}
 	
-	// deg“x‘Sg
+	// degåº¦å…¨èº«
 	private static void forward(int motor_pow, float deg) {
 		
-		// ƒ‚[ƒ^[Šp“x‰Šú‰»
+		// ãƒ¢ãƒ¼ã‚¿ãƒ¼è§’åº¦åˆæœŸåŒ–
 		motor_init();
 		
-		// ƒWƒƒƒCƒƒZƒ“ƒT[‚ÌƒŠƒZƒbƒg
+		// ã‚¸ãƒ£ã‚¤ãƒ­ã‚»ãƒ³ã‚µãƒ¼ã®ãƒªã‚»ãƒƒãƒˆ
 		gyroSensor.reset();
 		
 		motor_set(motor_pow, motor_pow);
@@ -286,7 +291,7 @@ public class FinalKdai {
 		
 		while((Math.abs(rightMoter.getTachoCount())+Math.abs(leftMoter.getTachoCount()))*0.5f < deg){
 			
-			// ƒZƒ“ƒT[’l‚ğ”z—ñ‚ÉŠi”[
+			// ã‚»ãƒ³ã‚µãƒ¼å€¤ã‚’é…åˆ—ã«æ ¼ç´
 			gyro.fetchSample(valueGyro, 0);
 			if (valueGyro[0] > 0) motor_set(motor_pow + val, motor_pow - val);
 			else motor_set(motor_pow - val, motor_pow + val);
@@ -294,13 +299,13 @@ public class FinalKdai {
 		}
 	}
 	
-	// deg“x‘Sg
+	// degåº¦å…¨èº«
 	private static void forward(int l_motor_pow, int r_motor_pow, float deg) {
 		
-		// ƒ‚[ƒ^[Šp“x‰Šú‰»
+		// ãƒ¢ãƒ¼ã‚¿ãƒ¼è§’åº¦åˆæœŸåŒ–
 		motor_init();
 		
-		// ƒWƒƒƒCƒƒZƒ“ƒT[‚ÌƒŠƒZƒbƒg
+		// ã‚¸ãƒ£ã‚¤ãƒ­ã‚»ãƒ³ã‚µãƒ¼ã®ãƒªã‚»ãƒƒãƒˆ
 		gyroSensor.reset();
 		
 		motor_set(l_motor_pow, r_motor_pow);
@@ -310,7 +315,7 @@ public class FinalKdai {
 		
 		while((Math.abs(rightMoter.getTachoCount())+Math.abs(leftMoter.getTachoCount()))*0.5f < deg){
 			
-			// ƒZƒ“ƒT[’l‚ğ”z—ñ‚ÉŠi”[
+			// ã‚»ãƒ³ã‚µãƒ¼å€¤ã‚’é…åˆ—ã«æ ¼ç´
 			gyro.fetchSample(valueGyro, 0);
 			if (valueGyro[0] > 0) motor_set(l_motor_pow + val, r_motor_pow - val);
 			else motor_set(l_motor_pow - val, r_motor_pow + val);
@@ -318,30 +323,30 @@ public class FinalKdai {
 		}
 	}
 	
-	// deg“x‘Sg
+	// degåº¦å…¨èº«
 	private static void forwardPID(int motor_pow, float deg, int angle) {
 		
-		// ƒ‚[ƒ^[Šp“x‰Šú‰»
+		// ãƒ¢ãƒ¼ã‚¿ãƒ¼è§’åº¦åˆæœŸåŒ–
 		motor_init();
 		
-		//ƒWƒƒƒCƒƒZƒ“ƒT[‚ÌƒŠƒZƒbƒg
+		//ã‚¸ãƒ£ã‚¤ãƒ­ã‚»ãƒ³ã‚µãƒ¼ã®ãƒªã‚»ãƒƒãƒˆ
 		gyroSensor.reset();
 		
 		motor_set(motor_pow, motor_pow);
 		
 		lineTracePIDInit();
 		
-		//ƒZƒ“ƒT[’l‚ğ—pˆÓ‚µ‚½”z—ñ‚ÉŠi”[
+		//ã‚»ãƒ³ã‚µãƒ¼å€¤ã‚’ç”¨æ„ã—ãŸé…åˆ—ã«æ ¼ç´
 		color.fetchSample(valueCol, 0);
 		
 		while((Math.abs(rightMoter.getTachoCount())+Math.abs(leftMoter.getTachoCount()))*0.5f < deg){
 			
-			//ƒZƒ“ƒT[’l‚ğ—pˆÓ‚µ‚½”z—ñ‚ÉŠi”[
+			//ã‚»ãƒ³ã‚µãƒ¼å€¤ã‚’ç”¨æ„ã—ãŸé…åˆ—ã«æ ¼ç´
 			color.fetchSample(valueCol, 0);
 			
 			float nowColorVal = valueCol[0];
 			/*
-			//ƒZƒ“ƒT[’lLCD•\¦•”•ª
+			//ã‚»ãƒ³ã‚µãƒ¼å€¤LCDè¡¨ç¤ºéƒ¨åˆ†
 			for(int k=0; k<color.sampleSize(); k++){
 				LCD.drawString("val[" + k + "] : " + valueCol[k] + "m", 1, k+1);
 			}*/
@@ -350,20 +355,20 @@ public class FinalKdai {
 		}
 	}
 	
-	// ƒuƒƒbƒN‚ğŒ©‚Â‚¯‚½‚©‚Ç‚¤‚©
+	// ãƒ–ãƒ­ãƒƒã‚¯ã‚’è¦‹ã¤ã‘ãŸã‹ã©ã†ã‹
 	private static boolean isFindBlock() {
 		
-		//ƒZƒ“ƒT[’l‚ğ”z—ñ‚ÉŠi”[
+		//ã‚»ãƒ³ã‚µãƒ¼å€¤ã‚’é…åˆ—ã«æ ¼ç´
 		sonic.fetchSample(valueSonic, 0);
 	    if (valueSonic[0] <= THRESHOLD) return true;
 		
 		return false;
 	}
 	
-	// ‚Â‚©‚Ş
+	// ã¤ã‹ã‚€
 	private static void catchBlock() {
 		
-		// ƒ‚[ƒ^[Šp“x‰Šú‰»
+		// ãƒ¢ãƒ¼ã‚¿ãƒ¼è§’åº¦åˆæœŸåŒ–
 		motor_init();
 		motor_set(0, 0);
 		middleMoter.setSpeed(-700);
@@ -375,7 +380,7 @@ public class FinalKdai {
 		middleMoter.backward();
 	}
 	
-	// ‚Í‚È‚·
+	// ã¯ãªã™
 	private static void releaseBlock() {
 		
 		motor_set(0, 0);
@@ -388,15 +393,15 @@ public class FinalKdai {
 		middleMoter.forward();
 	}
 	
-	// Œ©‚Â‚¯‚é‚Ü‚Å‘Oi
+	// è¦‹ã¤ã‘ã‚‹ã¾ã§å‰é€²
 	private static float forwardFindBlock(int motor_pow) {
 		
-		// ƒ‚[ƒ^[Šp“x‰Šú‰»
+		// ãƒ¢ãƒ¼ã‚¿ãƒ¼è§’åº¦åˆæœŸåŒ–
 		motor_init();
 		
-		//ƒWƒƒƒCƒƒZƒ“ƒT[‚ÌƒŠƒZƒbƒg
+		//ã‚¸ãƒ£ã‚¤ãƒ­ã‚»ãƒ³ã‚µãƒ¼ã®ãƒªã‚»ãƒƒãƒˆ
 		gyroSensor.reset();
-		// ƒZƒ“ƒT[’l‚ğ”z—ñ‚ÉŠi”[
+		// ã‚»ãƒ³ã‚µãƒ¼å€¤ã‚’é…åˆ—ã«æ ¼ç´
 		gyro.fetchSample(valueGyro, 0);
 		
 		motor_set(motor_pow, motor_pow);
@@ -404,9 +409,9 @@ public class FinalKdai {
 		int val = 5;
 		//if (motor_pow < 0) val *= -1;
 		
-		//  ƒuƒƒbƒN‚ªŒ©‚Â‚©‚é‚Ü‚Å‘Oi
+		//  ãƒ–ãƒ­ãƒƒã‚¯ãŒè¦‹ã¤ã‹ã‚‹ã¾ã§å‰é€²
 		while(!Button.ESCAPE.isDown() && !isFindBlock()){
-			// ƒZƒ“ƒT[’l‚ğ”z—ñ‚ÉŠi”[
+			// ã‚»ãƒ³ã‚µãƒ¼å€¤ã‚’é…åˆ—ã«æ ¼ç´
 			gyro.fetchSample(valueGyro, 0);
 			if (valueGyro[0] > 0) motor_set(motor_pow + val, motor_pow - val);
 			else motor_set(motor_pow - val, motor_pow + val);
@@ -416,32 +421,32 @@ public class FinalKdai {
 		return (Math.abs(rightMoter.getTachoCount())+Math.abs(leftMoter.getTachoCount()))*0.5f;
 	}
 	
-	// Œ©‚Â‚¯‚é‚Ü‚Å‘Oi
+	// è¦‹ã¤ã‘ã‚‹ã¾ã§å‰é€²
 	private static float forwardFindBlockPID(int motor_pow, int angle) {
 
-		// ƒ‚[ƒ^[Šp“x‰Šú‰»
+		// ãƒ¢ãƒ¼ã‚¿ãƒ¼è§’åº¦åˆæœŸåŒ–
 		motor_init();
 		
-		//ƒWƒƒƒCƒƒZƒ“ƒT[‚ÌƒŠƒZƒbƒg
+		//ã‚¸ãƒ£ã‚¤ãƒ­ã‚»ãƒ³ã‚µãƒ¼ã®ãƒªã‚»ãƒƒãƒˆ
 		gyroSensor.reset();
 		
 		motor_set(motor_pow, motor_pow);
 		
 		lineTracePIDInit();
 		
-		//ƒZƒ“ƒT[’l‚ğ—pˆÓ‚µ‚½”z—ñ‚ÉŠi”[
+		//ã‚»ãƒ³ã‚µãƒ¼å€¤ã‚’ç”¨æ„ã—ãŸé…åˆ—ã«æ ¼ç´
 		color.fetchSample(valueCol, 0);
 		
-		//  ƒuƒƒbƒN‚ªŒ©‚Â‚©‚é‚Ü‚Å‘Oi
+		//  ãƒ–ãƒ­ãƒƒã‚¯ãŒè¦‹ã¤ã‹ã‚‹ã¾ã§å‰é€²
 		while(!Button.ESCAPE.isDown() && !isFindBlock()){
 
-			//ƒZƒ“ƒT[’l‚ğ—pˆÓ‚µ‚½”z—ñ‚ÉŠi”[
+			//ã‚»ãƒ³ã‚µãƒ¼å€¤ã‚’ç”¨æ„ã—ãŸé…åˆ—ã«æ ¼ç´
 			color.fetchSample(valueCol, 0);
 			
 			float nowColorVal = valueCol[0];
 			
 			/*
-			//ƒZƒ“ƒT[’lLCD•\¦•”•ª
+			//ã‚»ãƒ³ã‚µãƒ¼å€¤LCDè¡¨ç¤ºéƒ¨åˆ†
 			for(int k=0; k<color.sampleSize(); k++){
 				LCD.drawString("val[" + k + "] : " + valueCol[k] + "m", 1, k+1);
 			}*/
@@ -453,17 +458,17 @@ public class FinalKdai {
 	}
 	
 	private static void angle(int pow, int ang, int angle) {
-		// ƒ‚[ƒ^[Šp“x‰Šú‰»
+		// ãƒ¢ãƒ¼ã‚¿ãƒ¼è§’åº¦åˆæœŸåŒ–
 		motor_init();
 		
-		//ƒWƒƒƒCƒƒZƒ“ƒT[‚ÌƒŠƒZƒbƒg
+		//ã‚¸ãƒ£ã‚¤ãƒ­ã‚»ãƒ³ã‚µãƒ¼ã®ãƒªã‚»ãƒƒãƒˆ
 		gyroSensor.reset();
 		
 		motor_set(angle * pow, -angle * pow);
 		
 		while(true){
 			
-			// ƒZƒ“ƒT[’l‚ğ”z—ñ‚ÉŠi”[
+			// ã‚»ãƒ³ã‚µãƒ¼å€¤ã‚’é…åˆ—ã«æ ¼ç´
 			gyro.fetchSample(valueGyro, 0);
 			if (Math.abs(valueGyro[0]) > ang) break;
 			Delay.msDelay(1);
@@ -477,14 +482,14 @@ public class FinalKdai {
 		
 		float nowColorVal = sensorValue;
 		
-		// •Î·
+		// åå·®
 		preDiff = diff;
 		diff = nowColorVal - targetValue;
 		
 		float tmp = (diff + preDiff) / 2.0f * DELTA_T;
 		integralList.add(tmp);
 		
-		// 10ŒÂ‚Ü‚Å
+		// 10å€‹ã¾ã§
 		if (integralList.size() >= 5) integralList.remove(0);
 		
 		float integral = 0.0f;
@@ -509,12 +514,12 @@ public class FinalKdai {
 	
 	
 	
-	// PID‰Šú‰»
+	// PIDåˆæœŸåŒ–
 	public static void lineTracePIDInit(){
-		// ƒJƒ‰[ƒZƒ“ƒT[‚Ì‘O‚Ì•Î·
+		// ã‚«ãƒ©ãƒ¼ã‚»ãƒ³ã‚µãƒ¼ã®å‰ã®åå·®
 		preDiff = 0;
 		diff = 0;
-		// I‚ÌÏ•ª—p
+		// Iã®ç©åˆ†ç”¨
 		integralList = new ArrayList<Float>();
 	}
 	
